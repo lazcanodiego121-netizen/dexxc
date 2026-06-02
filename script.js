@@ -1,0 +1,230 @@
+/* =========================
+ARCHIVO: script.js
+========================= */
+
+let cart = JSON.parse(localStorage.getItem("shoppingDexxCart")) || [];
+
+/* ================= AGREGAR ================= */
+
+function addToCart(name, price){
+
+  const existing = cart.find(item => item.name === name);
+
+  if(existing){
+
+    existing.quantity++;
+
+  }else{
+
+    cart.push({
+      name,
+      price,
+      quantity:1
+    });
+
+  }
+
+  saveCart();
+
+  updateCart();
+}
+
+/* ================= ACTUALIZAR ================= */
+
+function updateCart(){
+
+  const cartItems = document.getElementById("cart-items");
+
+  cartItems.innerHTML = "";
+
+  let subtotal = 0;
+  let totalItems = 0;
+
+  cart.forEach((item,index)=>{
+
+    subtotal += item.price * item.quantity;
+
+    totalItems += item.quantity;
+
+    cartItems.innerHTML += `
+
+      <div class="cart-item">
+
+        <h4>${item.name}</h4>
+
+        <p>$${item.price} MXN</p>
+
+        <div class="quantity-controls">
+
+          <button onclick="changeQuantity(${index}, -1)">
+            -
+          </button>
+
+          <span>${item.quantity}</span>
+
+          <button onclick="changeQuantity(${index}, 1)">
+            +
+          </button>
+
+        </div>
+
+        <button class="remove-btn"
+        onclick="removeItem(${index})">
+
+          Eliminar
+
+        </button>
+
+      </div>
+
+    `;
+  });
+
+  const iva = subtotal * 0.16;
+
+  const total = subtotal + iva;
+
+  document.getElementById("subtotal").innerText =
+  subtotal.toFixed(2);
+
+  document.getElementById("iva").innerText =
+  iva.toFixed(2);
+
+  document.getElementById("total").innerText =
+  total.toFixed(2);
+
+  document.getElementById("cart-count").innerText =
+  totalItems;
+}
+
+/* ================= CANTIDAD ================= */
+
+function changeQuantity(index, amount){
+
+  cart[index].quantity += amount;
+
+  if(cart[index].quantity <= 0){
+
+    cart.splice(index,1);
+
+  }
+
+  saveCart();
+
+  updateCart();
+}
+
+/* ================= ELIMINAR ================= */
+
+function removeItem(index){
+
+  cart.splice(index,1);
+
+  saveCart();
+
+  updateCart();
+}
+
+/* ================= GUARDAR ================= */
+
+function saveCart(){
+
+  localStorage.setItem(
+    "shoppingDexxCart",
+    JSON.stringify(cart)
+  );
+}
+
+/* ================= CARRITO ================= */
+
+function toggleCart(){
+
+  document.getElementById("cart")
+  .classList.toggle("active");
+}
+
+/* ================= RECIBO ================= */
+
+function generateReceipt(){
+
+  let receipt = `
+    <h3>SHOPPING DEXX</h3>
+    <hr><br>
+  `;
+
+  let subtotal = 0;
+
+  cart.forEach(item=>{
+
+    subtotal += item.price * item.quantity;
+
+    receipt += `
+      <p>
+        ${item.name}
+        x${item.quantity}
+        - $${item.price * item.quantity}
+      </p>
+    `;
+  });
+
+  const iva = subtotal * 0.16;
+
+  const total = subtotal + iva;
+
+  receipt += `
+    <br><hr><br>
+
+    <p>Subtotal: $${subtotal.toFixed(2)}</p>
+
+    <p>IVA: $${iva.toFixed(2)}</p>
+
+    <h2>Total: $${total.toFixed(2)} MXN</h2>
+
+    <br>
+
+    <p>Gracias por tu compra.</p>
+  `;
+
+  document.getElementById("receipt")
+  .innerHTML = receipt;
+}
+
+/* ================= DARK MODE ================= */
+
+function toggleDarkMode(){
+
+  document.body.classList.toggle("dark-mode");
+}
+
+/* ================= BUSCADOR ================= */
+
+const searchInput =
+document.getElementById("searchInput");
+
+searchInput.addEventListener("keyup",()=>{
+
+  const value =
+  searchInput.value.toLowerCase();
+
+  const cards =
+  document.querySelectorAll(".card");
+
+  cards.forEach(card=>{
+
+    const name =
+    card.dataset.name;
+
+    if(name.includes(value)){
+
+      card.style.display = "block";
+
+    }else{
+
+      card.style.display = "none";
+    }
+  });
+});
+
+/* ================= INICIAR ================= */
+
+updateCart();
